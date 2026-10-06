@@ -248,7 +248,7 @@
     const oy = els.choices.getBoundingClientRect().top + bh / 2;
     const reach = Math.hypot(Math.max(ox, vw - ox), Math.max(oy, vh - oy));
     const frac = Math.min(0.95, 0.2 + (n - 1) * 0.1);
-    const avoid = [yesRect(yesScale), els.card.getBoundingClientRect(), keepClearRect(), musicRect(), els.lang.getBoundingClientRect()].filter(Boolean);
+    const avoid = [yesRect(yesScale), els.card.getBoundingClientRect(), keepClearRect(), ...controlRects()].filter(Boolean);
     const current = els.no.getBoundingClientRect();
 
     for (let attempt = 0; attempt < 400; attempt++) {
@@ -263,14 +263,14 @@
       if (Math.hypot(x - current.left, y - current.top) < bw) continue;
       return { x, y };
     }
-    // Fallback: any corner that's clear of "yes".
+    // Fallback: any corner that's clear of everything (the top ones hold the corner controls).
     const corners = [
       { x: m, y: m },
       { x: vw - bw - m, y: m },
       { x: m, y: vh - bh - m },
       { x: vw - bw - m, y: vh - bh - m }
     ];
-    return corners.find((c) => !overlaps({ left: c.x, top: c.y, right: c.x + bw, bottom: c.y + bh }, avoid[0], 8)) || corners[0];
+    return corners.find((c) => !avoid.some((r) => overlaps({ left: c.x, top: c.y, right: c.x + bw, bottom: c.y + bh }, r, 8))) || corners[3];
   }
 
   function sendNoAway() {
@@ -363,7 +363,7 @@
     const vh = window.innerHeight;
     const m = 10;
     const yes = yesRect(yesScale);
-    const avoid = [els.card.getBoundingClientRect(), yes, noTarget, keepClearRect(), musicRect(), els.lang.getBoundingClientRect()].filter(Boolean);
+    const avoid = [els.card.getBoundingClientRect(), yes, noTarget, keepClearRect(), ...controlRects()].filter(Boolean);
     // Try with breathing room first, then snugger.
     for (const pad of [12, 4]) {
       for (let attempt = 0; attempt < 300; attempt++) {
@@ -373,9 +373,10 @@
         if (!avoid.some((r) => overlaps(box, r, pad))) return { x, y };
       }
     }
-    // Nowhere fully clear: at least stay out from behind "yes".
+    // Nowhere fully clear: at least stay out from behind "yes" and the corner controls.
     const above = yes.top - size - m;
-    return { x: m, y: Math.max(m, above) };
+    const belowControls = Math.max(m, ...controlRects().map((r) => r.bottom + m));
+    return { x: m, y: Math.max(belowControls, above) };
   }
 
   /* ------------------------------------------------------------------ */
@@ -469,8 +470,11 @@
       const r = els.no.getBoundingClientRect();
       const x = Math.min(Math.max(12, r.left), window.innerWidth - r.width - 12);
       const y = Math.min(Math.max(12, r.top), window.innerHeight - r.height - 12);
-      els.no.style.left = x + 'px';
-      els.no.style.top = y + 'px';
+      const box = { left: x, top: y, right: x + r.width, bottom: y + r.height };
+      // Landed on a corner control after the resize? Find it a fresh spot.
+      const spot = controlRects().some((c) => overlaps(box, c, 8)) ? pickNoSpot(noCount) : { x, y };
+      els.no.style.left = spot.x + 'px';
+      els.no.style.top = spot.y + 'px';
     }
   }
 
@@ -547,8 +551,9 @@
   const music = { started: false, ctx: null, gain: null, volume: 0.5, muted: false };
   const START_EVENTS = ['pointerup', 'touchend', 'click', 'keydown'];
 
-  function musicRect() {
-    return els.music.hidden ? null : els.music.getBoundingClientRect();
+  // The corner controls (music, language) nothing should land on.
+  function controlRects() {
+    return [els.music, els.lang].filter((el) => !el.hidden).map((el) => el.getBoundingClientRect());
   }
 
   function musicTarget() {
