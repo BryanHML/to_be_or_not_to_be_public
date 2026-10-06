@@ -25,6 +25,7 @@ All the words and pictures are in **`js/config.js`**:
   - the envelope, loading and button wording
 - `items`: which picture shows on which attempt
 - `envelopeSticker`, `letterSticker`
+- `music`: the background song and its starting volume
 - `background`: the painted backgrounds (and the moon area pop-ups stay off)
 
 ## Pictures
@@ -45,6 +46,24 @@ Stickers live in `assets/art/stickers/` and are set per "no" number under `items
 `cat_rose.png` sits on the envelope (`envelopeSticker`) and `cat_love.png` goes in the letter's corner (`letterSticker`). Keep each file's extension matching its real format (a PNG saved as `.webp` won't show on some iPhones). Until a file exists, a dashed placeholder with its label shows instead.
 
 **Backgrounds:** full-screen paintings live in `assets/art/background/` (originals) and `assets/art/background/web/` (compressed copies the site loads). They're set under `background` in `js/config.js`: `landscape` is for laptops and phones held sideways, `portrait` for phones held upright. The shooting stars and fireflies are drawn on top by the code. To change a painting, re-export it to the `web/` folder (a JPEG around 80% quality keeps it light).
+
+## Music
+
+No song comes with this repo (music is usually copyrighted), so add your own:
+
+1. Put an MP3 in `assets/song/web/`, e.g. `assets/song/web/our_song.mp3`.
+2. Point `music.src` in `js/config.js` at it:
+
+   ```js
+   music: {
+     src: 'assets/song/web/our_song.mp3',
+     volume: 0.5 // 0 to 1, where the volume slider starts
+   },
+   ```
+
+The song loops and fades in softly on her first tap (browsers block sound until the visitor interacts with the page). A small mute button and volume slider sit in the top-left corner, and the song pauses when she switches away from the tab. It keeps playing on iPhones with the silent switch on (Safari 17+). Keep the file small, around 128 kbps, so it loads quickly on a phone.
+
+To turn music off, set `src: null` and the corner control disappears.
 
 ## Running it locally
 
