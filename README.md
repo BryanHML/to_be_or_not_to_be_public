@@ -2,6 +2,17 @@
 
 A one-page confession site: a starry night meadow, a question, a "no" button that runs away, and a letter that opens when she says yes. A switch in the top-right corner flips it between English and Chinese. It's plain HTML/CSS/JS with no build step, so it works on any static host.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/confession_demo_main_laptop.jpg" alt="The question on a laptop, with the No button running away" height="320">
+  <img src="docs/screenshots/confession_demo_main_mobile.jpg" alt="The question on a phone" height="320">
+</p>
+<p align="center">
+  <img src="docs/screenshots/confession_demo_letter_laptop.jpg" alt="The letter rising out of the envelope on a laptop" height="320">
+  <img src="docs/screenshots/confession_demo_letter_mobile.jpg" alt="The letter on a phone" height="320">
+</p>
+
 ## How it plays
 
 1. She sees **Will you be my girlfriend?** with **Yes!** and **No**.
