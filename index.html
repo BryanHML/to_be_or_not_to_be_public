@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#050A20" />
+    <title>有一个问题想问你</title>
+    <!-- Link previews (WeChat, iMessage…) — deliberately vague so the question isn't spoiled -->
+    <meta property="og:title" content="有一个问题想问你" />
+    <meta property="og:description" content="点开看看～" />
+    <meta name="description" content="点开看看～" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="scene" id="scene">
+      <!-- Sky -->
+      <div class="sky" aria-hidden="true">
+        <div class="stars" id="stars"></div>
+        <div class="moon"></div>
+        <div class="shooting" id="shooting"></div>
+      </div>
+
+      <!-- Ground: hills + house drawn in CSS. Replaced by artwork if set in js/config.js -->
+      <div class="ground" id="ground" aria-hidden="true">
+        <div class="hill hill-back"></div>
+        <div class="hill hill-mid"></div>
+        <div class="house">
+          <span class="chimney"></span>
+          <span class="roof"></span>
+          <span class="walls"></span>
+          <span class="light attic"></span>
+          <span class="light win-left"></span>
+          <span class="light win-right"></span>
+          <span class="door"></span>
+        </div>
+        <div class="hill hill-front"></div>
+      </div>
+
+      <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+      <div class="favs" id="favs" aria-hidden="true"></div>
+
+      <!-- Screen 1: the question -->
+      <section class="ask" id="ask">
+        <div class="ask-card" id="ask-card">
+          <h1 class="title"><span>做我女朋友</span><span>好不好？</span></h1>
+          <p class="subtitle" id="subtitle"></p>
+          <p class="kicker" id="kicker" aria-live="polite"></p>
+        </div>
+        <div class="choices" id="choices">
+          <button type="button" class="btn btn-yes" id="yes">好呀！</button>
+          <span class="no-slot" id="no-slot"></span>
+          <button type="button" class="btn btn-no" id="no">不要</button>
+        </div>
+      </section>
+
+      <!-- Screen 2: the envelope -->
+      <section class="envelope-screen" id="envelope-screen" hidden>
+        <h2 class="envelope-title">我就知道你会答应！</h2>
+        <p class="envelope-sub">有一封信，是写给你的</p>
+        <div class="envelope">
+          <img class="envelope-sticker" id="envelope-sticker" alt="" hidden />
+          <span class="env-bottom"></span>
+          <span class="env-flap"></span>
+          <button
+            type="button"
+            class="seal seal-button"
+            id="open-letter"
+            aria-label="拆开信封"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"
+              />
+            </svg>
+          </button>
+        </div>
+        <p class="envelope-hint">点一下封蜡，拆开它</p>
+      </section>
+
+      <!-- Screen 3: the letter -->
+      <section class="letter-screen" id="letter-screen" hidden>
+        <div class="letter-wrap">
+          <div class="env-back"></div>
+          <article class="paper">
+            <div class="paper-scroll" id="paper-scroll">
+              <img class="sticker" id="sticker" alt="" hidden />
+              <p class="greeting" id="greeting"></p>
+              <div id="paragraphs"></div>
+              <div class="signoff">
+                <p id="closing"></p>
+                <p class="date" id="date"></p>
+              </div>
+            </div>
+          </article>
+          <div class="env-pocket"></div>
+          <span class="seal seal-static" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z"
+              />
+            </svg>
+          </span>
+        </div>
+        <button type="button" class="replay" id="replay">再看一遍</button>
+      </section>
+
+      <!-- Music: a small mute button and volume slider in the corner -->
+      <div class="music" id="music" hidden>
+        <button
+          type="button"
+          class="music-toggle"
+          id="music-toggle"
+          aria-label="静音"
+          aria-pressed="false"
+        >
+          <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4z" />
+            <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+            <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+          </svg>
+          <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4z" />
+            <path d="m16 9 5 6" />
+            <path d="m21 9-5 6" />
+          </svg>
+        </button>
+        <input
+          type="range"
+          class="music-volume"
+          id="music-volume"
+          min="0"
+          max="100"
+          step="1"
+          value="20"
+          aria-label="音量"
+        />
+      </div>
+      <audio id="song" loop preload="auto"></audio>
+
+      <!-- Loading: covers everything until the pictures and fonts are ready -->
+      <div class="loader" id="loader" role="status" aria-live="polite">
+        <div class="loader-stars" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <p class="loader-text">正在把星星挂上去…</p>
+        <div class="loader-bar" aria-hidden="true">
+          <span id="loader-fill"></span>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
