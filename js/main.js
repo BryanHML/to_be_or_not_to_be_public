@@ -2,6 +2,9 @@
   'use strict';
 
   const C = window.CONFIG;
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  let lang = C.text[urlLang] ? urlLang : C.defaultLang;
+  let T = C.text[lang]; // the words in the current language
   const $ = (id) => document.getElementById(id);
   const fill = (s) => String(s).split('{herName}').join(C.herName).split('{yourName}').join(C.yourName);
   const rand = (min, max) => min + Math.random() * (max - min);
@@ -29,11 +32,12 @@
     music: $('music'),
     musicToggle: $('music-toggle'),
     musicVolume: $('music-volume'),
-    song: $('song')
+    song: $('song'),
+    lang: document.querySelector('.lang')
   };
 
   // How many "no" attempts it takes for the button to leave for good.
-  const LAST_NO = C.messages.length - 1;
+  const LAST_NO = T.messages.length - 1;
 
   /* ------------------------------------------------------------------ */
   /* Scene                                                               */
@@ -161,12 +165,12 @@
 
   function renderAsk() {
     const i = Math.min(noCount, LAST_NO);
-    els.kicker.textContent = C.messages[i];
+    els.kicker.textContent = T.messages[i];
     els.kicker.classList.toggle('is-teasing', noCount > 0);
     if (noCount > 0 && !reduceMotion) {
       els.kicker.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'ease-out' });
     }
-    els.no.textContent = C.noLabels[Math.min(noCount, C.noLabels.length - 1)];
+    els.no.textContent = T.noLabels[Math.min(noCount, T.noLabels.length - 1)];
     yesScale = Math.min(1 + noCount * 0.32, maxYesScale());
     els.yes.style.transform = `scale(${yesScale})`;
   }
@@ -244,7 +248,7 @@
     const oy = els.choices.getBoundingClientRect().top + bh / 2;
     const reach = Math.hypot(Math.max(ox, vw - ox), Math.max(oy, vh - oy));
     const frac = Math.min(0.95, 0.2 + (n - 1) * 0.1);
-    const avoid = [yesRect(yesScale), els.card.getBoundingClientRect(), keepClearRect(), musicRect()].filter(Boolean);
+    const avoid = [yesRect(yesScale), els.card.getBoundingClientRect(), keepClearRect(), musicRect(), els.lang.getBoundingClientRect()].filter(Boolean);
     const current = els.no.getBoundingClientRect();
 
     for (let attempt = 0; attempt < 400; attempt++) {
@@ -321,8 +325,9 @@
 
   function showFav(n, noTarget) {
     clearFavs();
-    const item = C.items && C.items[n];
-    if (!item) return;
+    const src = C.items && C.items[n];
+    const label = (T.itemLabels && T.itemLabels[n]) || '';
+    if (!src && !label) return;
 
     const fav = document.createElement('div');
     fav.className = 'fav';
@@ -333,13 +338,13 @@
     const placeholder = () => {
       const p = document.createElement('div');
       p.className = 'fav-placeholder';
-      p.textContent = item.label;
+      p.textContent = label;
       inner.replaceChildren(p);
     };
-    if (item.src) {
+    if (src) {
       const img = document.createElement('img');
-      img.alt = item.label;
-      img.src = item.src;
+      img.alt = label;
+      img.src = src;
       img.onerror = placeholder;
       inner.appendChild(img);
     } else {
@@ -358,7 +363,7 @@
     const vh = window.innerHeight;
     const m = 10;
     const yes = yesRect(yesScale);
-    const avoid = [els.card.getBoundingClientRect(), yes, noTarget, keepClearRect(), musicRect()].filter(Boolean);
+    const avoid = [els.card.getBoundingClientRect(), yes, noTarget, keepClearRect(), musicRect(), els.lang.getBoundingClientRect()].filter(Boolean);
     // Try with breathing room first, then snugger.
     for (const pad of [12, 4]) {
       for (let attempt = 0; attempt < 300; attempt++) {
@@ -378,25 +383,25 @@
   /* ------------------------------------------------------------------ */
 
   function fillLetter() {
-    $('greeting').textContent = fill(C.letter.greeting);
+    $('greeting').textContent = fill(T.letter.greeting);
     const paras = document.createDocumentFragment();
-    C.letter.paragraphs.forEach((text) => {
+    T.letter.paragraphs.forEach((text) => {
       const p = document.createElement('p');
       p.textContent = fill(text);
       paras.appendChild(p);
     });
     $('paragraphs').replaceChildren(paras);
-    $('closing').textContent = fill(C.letter.closing);
-    $('date').textContent = C.date;
+    $('closing').textContent = fill(T.letter.closing);
+    $('date').textContent = T.date;
     if (C.envelopeSticker) {
       const envSticker = $('envelope-sticker');
       envSticker.src = C.envelopeSticker;
       envSticker.hidden = false;
       envSticker.onerror = () => { envSticker.hidden = true; };
     }
-    if (C.letter.sticker) {
+    if (C.letterSticker) {
       const sticker = $('sticker');
-      sticker.src = C.letter.sticker;
+      sticker.src = C.letterSticker;
       sticker.hidden = false;
       sticker.onerror = () => { sticker.hidden = true; };
     }
@@ -469,9 +474,44 @@
     }
   }
 
-  function init() {
-    els.subtitle.textContent = fill(C.subtitle);
+  /* ------------------------------------------------------------------ */
+  /* Language                                                            */
+  /* ------------------------------------------------------------------ */
+
+  function applyLang(next) {
+    lang = next;
+    T = C.text[lang];
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+    document.title = T.pageTitle;
+    const title = $('title');
+    title.replaceChildren(...T.title.flatMap((line, i) => {
+      const span = document.createElement('span');
+      span.textContent = line;
+      // English needs a space between the two lines when they share one row.
+      return i && lang !== 'zh' ? [' ', span] : [span];
+    }));
+    document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = T[el.dataset.t]; });
+    document.querySelectorAll('[data-t-label]').forEach((el) => el.setAttribute('aria-label', T[el.dataset.tLabel]));
+    els.lang.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    els.subtitle.textContent = fill(T.subtitle);
     fillLetter();
+    renderMusic();
+    renderAsk();
+  }
+
+  function init() {
+    applyLang(lang);
+    els.lang.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-lang]');
+      if (!b || b.dataset.lang === lang) return;
+      applyLang(b.dataset.lang);
+      // Keep the choice on reload.
+      try {
+        const url = new URL(location.href);
+        url.searchParams.set('lang', lang);
+        history.replaceState(null, '', url);
+      } catch (err) { /* file:// in some browsers */ }
+    });
     applyArtwork();
     makeStars();
     makeFireflies();
@@ -566,7 +606,7 @@
   function renderMusic() {
     els.music.classList.toggle('is-muted', music.muted);
     els.musicToggle.setAttribute('aria-pressed', String(music.muted));
-    els.musicToggle.setAttribute('aria-label', music.muted ? '打开声音' : '静音');
+    els.musicToggle.setAttribute('aria-label', music.muted ? T.unmute : T.mute);
   }
 
   function setupMusic() {
@@ -619,23 +659,35 @@
     });
   }
 
+  // Same families as --font-cute / --font-hand / --font-body in css/style.css.
+  const FONTS = {
+    zh: { cute: '"ZCOOL KuaiLe"', hand: '"Ma Shan Zheng"', body: '"Noto Sans SC"' },
+    en: { cute: '"Fredoka"', hand: '"Caveat"', body: '"Nunito"' }
+  };
+
+  // Both languages, so switching doesn't flash the fallback font.
   function preloadFonts() {
     if (!document.fonts || !document.fonts.load) return [];
-    const letterText = [C.letter.greeting, ...C.letter.paragraphs, C.letter.closing, C.date].map(fill).join('');
-    const cuteText = '做我女朋友好不好？好呀！我就知道你会答应' + C.noLabels.join('');
-    const bodyText = C.messages.join('') + fill(C.subtitle) + '有一封信是写给你的点一下封蜡拆开它再看一遍';
-    return [
-      document.fonts.load('28px "ZCOOL KuaiLe"', cuteText),
-      document.fonts.load('24px "Ma Shan Zheng"', letterText),
-      document.fonts.load('400 18px "Noto Sans SC"', bodyText),
-      document.fonts.load('500 18px "Noto Sans SC"', bodyText)
-    ].map((p) => p.catch(() => {}));
+    return Object.keys(C.text).flatMap((l) => {
+      const t = C.text[l];
+      const f = FONTS[l];
+      if (!f) return [];
+      const letterText = [t.letter.greeting, ...t.letter.paragraphs, t.letter.closing, t.date].map(fill).join('');
+      const cuteText = t.title.join('') + t.yes + t.envelopeTitle + t.noLabels.join('');
+      const bodyText = t.messages.join('') + fill(t.subtitle) + t.envelopeSub + t.envelopeHint + t.replay;
+      return [
+        document.fonts.load(`28px ${f.cute}`, cuteText),
+        document.fonts.load(`24px ${f.hand}`, letterText),
+        document.fonts.load(`400 18px ${f.body}`, bodyText),
+        document.fonts.load(`500 18px ${f.body}`, bodyText)
+      ];
+    }).map((p) => p.catch(() => {}));
   }
 
   function preloadAll() {
     const bg = C.background || {};
-    const images = [bg.landscape, bg.portrait, C.envelopeSticker, C.letter.sticker]
-      .concat(Object.values(C.items || {}).map((item) => item.src))
+    const images = [bg.landscape, bg.portrait, C.envelopeSticker, C.letterSticker]
+      .concat(Object.values(C.items || {}))
       .filter(Boolean);
     const tasks = images.map(preloadImage).concat(preloadFonts());
 

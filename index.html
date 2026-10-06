@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Fredoka:wght@500&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Nunito:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap"
     />
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -52,12 +52,12 @@
       <!-- Screen 1: the question -->
       <section class="ask" id="ask">
         <div class="ask-card" id="ask-card">
-          <h1 class="title"><span>做我女朋友</span><span>好不好？</span></h1>
+          <h1 class="title" id="title"><span>做我女朋友</span><span>好不好？</span></h1>
           <p class="subtitle" id="subtitle"></p>
           <p class="kicker" id="kicker" aria-live="polite"></p>
         </div>
         <div class="choices" id="choices">
-          <button type="button" class="btn btn-yes" id="yes">好呀！</button>
+          <button type="button" class="btn btn-yes" id="yes" data-t="yes">好呀！</button>
           <span class="no-slot" id="no-slot"></span>
           <button type="button" class="btn btn-no" id="no">不要</button>
         </div>
@@ -65,8 +65,8 @@
 
       <!-- Screen 2: the envelope -->
       <section class="envelope-screen" id="envelope-screen" hidden>
-        <h2 class="envelope-title">我就知道你会答应！</h2>
-        <p class="envelope-sub">有一封信，是写给你的</p>
+        <h2 class="envelope-title" data-t="envelopeTitle">我就知道你会答应！</h2>
+        <p class="envelope-sub" data-t="envelopeSub">有一封信，是写给你的</p>
         <div class="envelope">
           <img class="envelope-sticker" id="envelope-sticker" alt="" hidden />
           <span class="env-bottom"></span>
@@ -76,6 +76,7 @@
             class="seal seal-button"
             id="open-letter"
             aria-label="拆开信封"
+            data-t-label="openLetter"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -84,7 +85,7 @@
             </svg>
           </button>
         </div>
-        <p class="envelope-hint">点一下封蜡，拆开它</p>
+        <p class="envelope-hint" data-t="envelopeHint">点一下封蜡，拆开它</p>
       </section>
 
       <!-- Screen 3: the letter -->
@@ -111,7 +112,7 @@
             </svg>
           </span>
         </div>
-        <button type="button" class="replay" id="replay">再看一遍</button>
+        <button type="button" class="replay" id="replay" data-t="replay">再看一遍</button>
       </section>
 
       <!-- Music: a small mute button and volume slider in the corner -->
@@ -143,16 +144,23 @@
           step="1"
           value="20"
           aria-label="音量"
+          data-t-label="volume"
         />
       </div>
       <audio id="song" loop preload="auto"></audio>
+
+      <!-- Language switch in the other corner -->
+      <div class="lang" role="group" aria-label="语言 / Language">
+        <button type="button" class="lang-btn" data-lang="zh" lang="zh-CN">中文</button>
+        <button type="button" class="lang-btn" data-lang="en" lang="en">EN</button>
+      </div>
 
       <!-- Loading: covers everything until the pictures and fonts are ready -->
       <div class="loader" id="loader" role="status" aria-live="polite">
         <div class="loader-stars" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <p class="loader-text">正在把星星挂上去…</p>
+        <p class="loader-text" data-t="loading">正在把星星挂上去…</p>
         <div class="loader-bar" aria-hidden="true">
           <span id="loader-fill"></span>
         </div>
