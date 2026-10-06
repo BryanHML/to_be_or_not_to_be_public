@@ -5,7 +5,7 @@ window.CONFIG = {
   yourName: 'YOURNAME',
 
   // Language it opens in: 'zh' or 'en'. A link ending in ?lang=en opens in English.
-  defaultLang: 'zh',
+  defaultLang: 'en',
 
   // All the words, once per language. Both blocks have the same keys.
   text: {
@@ -91,7 +91,7 @@ window.CONFIG = {
       envelopeSub: "There's a letter, and it's for you",
       envelopeHint: 'Tap the wax seal to open it',
       openLetter: 'Open the envelope',
-      replay: 'Watch again',
+      replay: 'Back to Start',
       loading: 'Hanging up the stars…',
       mute: 'Mute',
       unmute: 'Unmute',
