@@ -7,7 +7,8 @@ window.CONFIG = {
   // Language it opens in: 'zh' or 'en'. A link ending in ?lang=en opens in English.
   defaultLang: 'en',
 
-  // All the words, once per language. Both blocks have the same keys.
+  // All the words, once per language. Both blocks have the same keys,
+  // and `messages` / `noLabels` have the same number of lines in both.
   text: {
     zh: {
       pageTitle: '有一个问题想问你',
@@ -134,7 +135,7 @@ window.CONFIG = {
   // Background music. Starts softly on her first tap (browsers don't allow sound
   // before that). volume: 0–1. Set src to null for no music.
   music: {
-    src: 'assets/song/web/glass_gareth.mp3',
+    src: null, // e.g. 'assets/song/web/our_song.mp3'
     volume: 0.5
   },
 

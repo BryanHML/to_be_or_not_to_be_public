@@ -3,7 +3,7 @@
 
   const C = window.CONFIG;
   const urlLang = new URLSearchParams(location.search).get('lang');
-  let lang = C.text[urlLang] ? urlLang : C.defaultLang;
+  let lang = Object.hasOwn(C.text, urlLang) ? urlLang : C.defaultLang;
   let T = C.text[lang]; // the words in the current language
   const $ = (id) => document.getElementById(id);
   const fill = (s) => String(s).split('{herName}').join(C.herName).split('{yourName}').join(C.yourName);
@@ -14,7 +14,6 @@
     scene: $('scene'),
     stars: $('stars'),
     shooting: $('shooting'),
-    ground: $('ground'),
     fireflies: $('fireflies'),
     favs: $('favs'),
     ask: $('ask'),
@@ -164,8 +163,7 @@
   let yesScale = 1;
 
   function renderAsk() {
-    const i = Math.min(noCount, LAST_NO);
-    els.kicker.textContent = T.messages[i];
+    els.kicker.textContent = T.messages[Math.min(noCount, T.messages.length - 1)];
     els.kicker.classList.toggle('is-teasing', noCount > 0);
     if (noCount > 0 && !reduceMotion) {
       els.kicker.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'ease-out' });
@@ -620,7 +618,6 @@
     els.song.src = C.music.src;
     els.musicVolume.value = Math.round(music.volume * 100);
     els.music.hidden = false;
-    document.body.classList.add('has-music');
     renderMusic();
 
     els.musicToggle.addEventListener('click', () => {
@@ -670,10 +667,9 @@
     en: { cute: '"Fredoka"', hand: '"Caveat"', body: '"Nunito"' }
   };
 
-  // Both languages, so switching doesn't flash the fallback font.
-  function preloadFonts() {
+  function preloadFonts(langs) {
     if (!document.fonts || !document.fonts.load) return [];
-    return Object.keys(C.text).flatMap((l) => {
+    return langs.flatMap((l) => {
       const t = C.text[l];
       const f = FONTS[l];
       if (!f) return [];
@@ -691,10 +687,13 @@
 
   function preloadAll() {
     const bg = C.background || {};
-    const images = [bg.landscape, bg.portrait, C.envelopeSticker, C.letterSticker]
+    // Only the painting this screen shows; <picture> fetches the other if she rotates.
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    const backdrop = (portrait && bg.portrait) || bg.landscape || bg.portrait;
+    const images = [backdrop, C.envelopeSticker, C.letterSticker]
       .concat(Object.values(C.items || {}))
       .filter(Boolean);
-    const tasks = images.map(preloadImage).concat(preloadFonts());
+    const tasks = images.map(preloadImage).concat(preloadFonts([lang]));
 
     const bar = $('loader-fill');
     let done = 0;
@@ -713,6 +712,8 @@
     renderAsk(); // re-measure now the fonts are in
     loader.classList.add('is-done');
     window.setTimeout(() => loader.remove(), 700);
+    // Now the other languages' fonts, so switching doesn't flash the fallback font.
+    preloadFonts(Object.keys(C.text).filter((l) => l !== lang));
   }
 
   init();

@@ -1,1 +1,4 @@
 .claude/
+
+# Full-size original paintings: the site loads the compressed copies in web/
+assets/art/background/*.jpg

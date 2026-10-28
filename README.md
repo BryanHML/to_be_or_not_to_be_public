@@ -56,7 +56,7 @@ Stickers live in `assets/art/stickers/` and are set per "no" number under `items
 
 `cat_rose.png` sits on the envelope (`envelopeSticker`) and `cat_love.png` goes in the letter's corner (`letterSticker`). Keep each file's extension matching its real format (a PNG saved as `.webp` won't show on some iPhones). Until a file exists, a dashed placeholder with its label shows instead.
 
-**Backgrounds:** full-screen paintings live in `assets/art/background/` (originals) and `assets/art/background/web/` (compressed copies the site loads). They're set under `background` in `js/config.js`: `landscape` is for laptops and phones held sideways, `portrait` for phones held upright. The shooting stars and fireflies are drawn on top by the code. To change a painting, re-export it to the `web/` folder (a JPEG around 80% quality keeps it light).
+**Backgrounds:** the site loads the compressed paintings in `assets/art/background/web/`. Keep your full-size originals in `assets/art/background/` (git ignores them there, so they stay on your computer). They're set under `background` in `js/config.js`: `landscape` is for laptops and phones held sideways, `portrait` for phones held upright. The shooting stars and fireflies are drawn on top by the code. To change a painting, re-export it to the `web/` folder (a JPEG around 80% quality keeps it light).
 
 ## Music
 
@@ -83,3 +83,5 @@ npx serve .
 ```
 
 Then open the address it prints. You can also open `index.html` directly in a browser.
+
+After changing the layout, paste `tests/overlap-check.js` into the browser console at a few window sizes. It plays the page and lists anything that lands on the corner controls.
