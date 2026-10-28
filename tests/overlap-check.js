@@ -1,8 +1,8 @@
 // Overlap check: plays the page and reports anything that lands on the corner
 // controls (music, language). Open the site, paste this into the browser
 // console and read the result (empty `issues` = nothing clashed). Try several
-// window sizes, including a phone held sideways. It turns animations off, so
-// reload the page afterwards.
+// window sizes, including a phone held sideways. Animations are off while it
+// runs and come back when it finishes.
 (async () => {
   const st = document.createElement('style');
   st.textContent = '*{transition:none!important;animation:none!important}';
@@ -29,20 +29,32 @@
     document.querySelectorAll('.fav:not(.is-leaving)').forEach((f) => t.push(['sticker', R(f)]));
     check(t);
   };
-  const until = async (f) => { while (!f()) await new Promise((r) => setTimeout(r, 50)); };
+  // Give up after 5s (e.g. someone clicked the page mid-run) instead of hanging.
+  const until = async (f) => {
+    for (const end = Date.now() + 5000; !f();) {
+      if (Date.now() > end) throw new Error('page did not reach the next screen; do not click while it runs');
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  };
 
   // 10 rounds, alternating languages: 8 dodges, yes, envelope, letter, replay.
-  for (let run = 0; run < 10; run++) {
-    document.querySelector(`[data-lang=${run % 2 ? 'zh' : 'en'}]`).click();
-    ask();
-    for (let i = 0; i < 8; i++) { off += 400; no.click(); ask(); }
-    yes.click();
-    await until(() => !$('envelope-screen').hidden);
-    check([['envelope title', R(document.querySelector('.envelope-title'))], ['envelope', R(document.querySelector('.envelope'))]]);
-    $('open-letter').click();
-    await until(() => !$('letter-screen').hidden);
-    check([['letter', R(document.querySelector('.letter-wrap'))], ['replay', R($('replay'))]]);
-    $('replay').click();
+  try {
+    for (let run = 0; run < 10; run++) {
+      document.querySelector(`[data-lang=${run % 2 ? 'zh' : 'en'}]`).click();
+      ask();
+      for (let i = 0; i < 8; i++) { off += 400; no.click(); ask(); }
+      yes.click();
+      await until(() => !$('envelope-screen').hidden);
+      check([['envelope title', R(document.querySelector('.envelope-title'))], ['envelope', R(document.querySelector('.envelope'))]]);
+      $('open-letter').click();
+      await until(() => !$('letter-screen').hidden);
+      check([['letter', R(document.querySelector('.letter-wrap'))], ['replay', R($('replay'))]]);
+      $('replay').click();
+    }
+  } finally {
+    // Put animations and the clock back, so the page plays normally afterwards.
+    st.remove();
+    performance.now = real;
   }
   console.log({ size: `${innerWidth}x${innerHeight}`, issues });
 })();
